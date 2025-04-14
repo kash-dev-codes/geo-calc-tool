@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Towed Streamer Fold Calculator</title>
+</head>
+<body>
+   <div class="interactive">Interactive Walkthrough</div> 
+   <div class="main">
+    <div class="input"></div>
+    <div class="results"></div>
+   </div>
+</body><div class="card-body">
+    <h4 class="card-title">Inputs</h4>
+    <p class="card-text"></p>
+
+        <!-- Top Row -->
+        <div class="inputs_card_top_row">
+
+            <div data-title="Basic streamer definition parameters" data-intro="Lateral streamer spacing is symmetrical about the vessel axis" data-step="1">
+                <div class="row">
+                    <div class="col-6 inputs_title"># of Streamers</div>
+                    <div class="col-6">
+                        <input onkeyup="checkInputs(true)" class="input" type="text" id="number_of_streamers" name="# of Streamers" placeholder="MAX 20" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 inputs_title">Streamer Spacing</div>
+                    <div class="col-6">
+                        <input onkeyup="checkInputs(true)" class="input" type="text" id="streamer_spacing" name="Streamer Spacing" placeholder=">0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 inputs_title">Streamer Length</div>
+                    <div class="col-6">
+                        <input onkeyup="checkInputs(true)" class="input" type="text" id="streamer_length" name="Streamer Length" pattern="[0-9]" placeholder=">0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');" onkeydown="if(event.key==='.'){event.preventDefault();}">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 inputs_title">Group Spacing</div>
+                    <div class="col-6">
+                        <div id="group_spacing_tip" class="" data-tip="Group spacing must be less than streamer length">
+                            <input onkeyup="checkInputs(true)" class="input" type="text" id="group_spacing" name="Group Spacing" placeholder=">0 (<Length)" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div data-title="Streamer setbacks" data-tooltip-class="no_max_width" data-intro="
+            The near trace setback distance is the setback distance of a a notional streamer directly behind the vessel.
+            <br><br>
+            Other streamers are setback based on the Setback Mode:<br><br>
+            - <b>Level</b>: All streamers are setback the same (ie the near trace setback distance)<br>
+            - <b>Radial</b>: Streamers are set back by the distance required to give the same near trace offset on each streamer. (This means that the near trace setback must be sufficient that the near trace offset is greater than the crosstrack offset of the outer streamer.)<br>
+            - <b>Catenary</b>: Streamers are set back by an amount defined by a user input catenary rope length, whick must be greater than the distance between the outer streamers.<br>
+            " data-step="2">
+                <div class="row">
+                    <div class="col-6 inputs_title">Near Trace Setback Distance</div>
+                    <div class="col-6">
+                        <div id="ntsd_tip" class="" data-tip="Near Trace Setback distance needs to be increased">
+                            <input onkeyup="checkInputs(true)" class="input" type="text" id="ntsd" name="Near Trace Setback Distance" placeholder="#" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6 inputs_title">Setbacks</div>
+                    <div class="col-6">
+                        <select class="dropdown" id="setbacks" style="cursor:pointer" onchange="setbacksDropdownChanged()">
+                            <option value="Level">Level</option>
+                            <option value="Radial">Radial</option>
+                            <option value="Catenary">Catenary</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row" id="crl_row" style="visibility: hidden;">
+                <div class="col-6 inputs_title">Catenary Rope Length</div>
+                <div class="col-6">
+                    <div id="crl_tip" class="" data-tip="Rope Length must be greater than streamer spread">
+                        <input onkeyup="checkInputs(true)" class="input" type="text" id="crl" name="" placeholder=">0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- Top Row (END) -->
+
+        <!-- Bottom Row -->
+        <style>
+            .width350 {
+                min-width: 350px;
+            }
+        </style>
+        <div class="inputs_card_bottom_row" data-title="Shooting Parameters" data-tooltip-class="width350" data-intro="
+        For “natural” binning, the Source Spacing should be equal to the streamer spacing divided by the number of sources. There are cases where other source spacings may be appropriate .. But use with care !
+        <br><br>
+        The shotpoint interval is “per source”; ie if you enter 3 sources at 25m, each source will fire every 75 meters
+        " data-step="3">
+
+            <div class="row">
+                <div class="col-6 inputs_title"># of Sources</div>
+                <div class="col-6">
+                    <input onkeyup="checkInputs(true)" class="input" type="text" id="number_of_sources" name="# of Sources" placeholder="MAX 8" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 results_title">Source Spacing</div>
+                <div class="col-6">
+                    <input onkeyup="checkInputs(true)" class="input" type="text" id="source_spacing" name="Source Spacing" placeholder=">0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 results_title">Shotpoint Interval</div>
+                <div class="col-6">
+                    <input onkeyup="checkInputs(true)" class="input" type="text" id="shotpoint_interval" name="Source Spacing" placeholder=">0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-6 results_title">Source Setback Distance</div>
+                <div class="col-6">
+                    <input onkeyup="checkInputs(true)" class="input" type="text" id="ssd" name="Source Setback Distance" placeholder=">0" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');">
+                </div>
+            </div>
+
+        </div>
+        <!-- Bottom Row (END) -->
+         <div class="card-body">
+
+            <style>
+                .sample {
+                    top: 0px !important;
+                }
+            </style>
+
+            <h4 class="card-title">Results</h4>
+            <p class="card-text"></p>
+                <div data-title="Crossline sampling results" data-tooltip-class="no_max_width sample" data-intro="
+                The vessel line spacing is the natural vessel line spacing for the selected configuration. Note that acquiring data with a larger line spacing could result in aliased data and reduced trace density. Acquiring data with a reduced line spacing reults in increased trace density, and can be used on 4D projects to ensure matching offsets and azimuths are available.
+                <br><br>
+                CMP lines per vessel pass is simply the number of streamers multiplied by the number of sources.<br><br>
+                Uniform crossline sample is “Yes” if the the CMP lines are regularly spaced. In this case, the Nominal Crossline Sample Interval is the crossline bin size.<br><br>
+                Adjacent lines are interleaved is “No” if the sum of the source spacings is less than the streamer spacing.<br><br>
+                The configuration is a traditional/simple/natural one if the Uniform crossline sample is “Yes” and the Adjacent line interleave is “No”.<br><br>
+                Co-incident crossline samples flags a pathological case where the source spacing is equal to an integer multiple of the streamer spacing. In this case, 2 of the CMP lines are cooincident. Note that since the azimuths are different, they are still technically different samples of the subsurface … but binning it will be tricky!
+                " data-step="5" data-tooltip-position="bottom">
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Vessel Line Spacing</div>
+                            <div class="col-6 center_div_within_row">
+                                <div class="results" id="vls">600</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">CMP Lines Per Vessel Pass</div>
+                            <div class="col-6 center_div_within_row">
+                                <div class="results" id="cmp">24</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Uniform Crossline Sample</div>
+                            <div class="col-6 center_div_within_row" data-title="Warning message">
+                                <div class="results" id="ucs">Yes</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Adjacent Lines Interleaved</div>
+                            <div class="col-6 center_div_within_row" data-title="Warning message">
+                                <div class="results" id="ali">No</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Co-incident Crossline Samples</div>
+                            <div class="col-6 center_div_within_row" data-title="Warning message">
+                                <div class="results" id="cics">No</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Nominal Crossline Sample Interval</div>
+                            <div class="col-6 center_div_within_row">
+                                <div class="results" id="ncbs">25</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="results_line" data-title="Nominal in-line sample interval" data-intro="
+                    This is the recommended in-line bin size, and it is half of the smaller of the streamer group interval and the Shotpoint interval for an individual source.
+                    " data-step="6">
+                    <div class="row">
+                        <div class="col-6 results_title">Nominal In-Line Sample Interval</div>
+                        <div class="col-6 center_div_within_row">
+                            <div class="results" id="nilbs">6.3</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="results_line" data-title="Fold and Trace Density" data-tooltip-class="width350" data-intro="
+                    ACTeQ prefers to work with Trace Density, because it is unambiguous.<br><br>
+                    Fold is dependent on the selected bin size. In this application, we assume that the bin sizes are equal to the nominal sampling densities. Note that if the field “Uniform sampling density” is “No”, then some bins may be empty while others are double fold. In reality, streamer feathering, vessel steering and pre-stack migration make this a less valuable as a 3D metric. 
+                    " data-step="7">
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Nominal Fold</div>
+                            <div class="col-6 center_div_within_row">
+                                <div class="results" id="fold">60</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="results_line">
+                        <div class="row">
+                            <div class="col-6 results_title">Trace Density<sub><br>(k traces / sq km)</sub>
+                            </div>
+                            <div class="col-6 center_div_within_row">
+                                <div class="results" id="trace_density">384</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+        </div>
+
+</div>
+
+</html>
